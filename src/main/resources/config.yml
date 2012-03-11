@@ -1,0 +1,7 @@
+server:
+  port: 6596
+plugins:
+  path: 'plugins'
+core:
+  machines:
+    path: 'machines'
