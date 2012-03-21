@@ -7,14 +7,14 @@ import com.kokakiwi.kintell.spec.utils.Configuration;
 
 public class Program
 {
-    public final static long TIMEOUT = 3000L;
+    public final static long                                  TIMEOUT = 3000L;
     
-    private final Machine    owner;
-    private final String     id;
-    private String           name;
+    private final Machine                                     owner;
+    private final String                                      id;
+    private String                                            name;
     
-    private File             root;
-    private ProgramExecutor  executor;
+    private File                                              root;
+    private ProgramExecutorFactory<? extends ProgramExecutor> executorFactory;
     
     public Program(Machine owner, String id)
     {
@@ -64,14 +64,15 @@ public class Program
         }
     }
     
-    public ProgramExecutor getExecutor()
+    public ProgramExecutorFactory<? extends ProgramExecutor> getExecutorFactory()
     {
-        return executor;
+        return executorFactory;
     }
     
-    public void setExecutor(ProgramExecutor executor)
+    public void setExecutor(
+            ProgramExecutorFactory<? extends ProgramExecutor> executorFactory)
     {
-        this.executor = executor;
+        this.executorFactory = executorFactory;
         try
         {
             save();
@@ -86,7 +87,7 @@ public class Program
     {
         Configuration conf = new Configuration();
         conf.set("name", name);
-        conf.set("contentType", executor.getContentType());
+        conf.set("contentType", executorFactory.getContentType());
         conf.save(new File(root, "def.yml"));
     }
     
@@ -104,7 +105,7 @@ public class Program
                 Thread thread = new Thread(new Runnable() {
                     public void run()
                     {
-                        executor = executorFactory.createExecutor(Program.this);
+                        Program.this.executorFactory = executorFactory;
                     }
                 });
                 thread.start();
@@ -141,8 +142,8 @@ public class Program
         builder.append(name);
         builder.append(", root=");
         builder.append(root);
-        builder.append(", executor=");
-        builder.append(executor);
+        builder.append(", executorFactory=");
+        builder.append(executorFactory);
         builder.append("]");
         return builder.toString();
     }

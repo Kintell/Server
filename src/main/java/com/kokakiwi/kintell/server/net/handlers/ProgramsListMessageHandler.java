@@ -1,7 +1,5 @@
 package com.kokakiwi.kintell.server.net.handlers;
 
-import java.util.Map;
-
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 
@@ -15,7 +13,6 @@ import com.kokakiwi.kintell.spec.net.msg.ProgramsListMessage;
 public class ProgramsListMessageHandler extends
         MessageHandler<ProgramsListMessage>
 {
-    @SuppressWarnings("unused")
     private final Server server;
     
     public ProgramsListMessageHandler(Server server)
@@ -23,25 +20,26 @@ public class ProgramsListMessageHandler extends
         this.server = server;
     }
     
-    @SuppressWarnings("unchecked")
     @Override
     public boolean handle(ChannelHandlerContext ctx, MessageEvent e,
             ProgramsListMessage msg)
     {
         ProgramsListMessage ret = new ProgramsListMessage();
-        Map<String, Object> attach = (Map<String, Object>) ctx.getAttachment();
-        User user = (User) attach.get("user");
-        for (Machine machine : user.getMachines().values())
+        
+        for (User user : server.getMain().getCore().getUsers().values())
         {
-            for (Program program : machine.getPrograms().values())
+            for (Machine machine : user.getMachines().values())
             {
-                ProgramsListMessage.Program p = new ProgramsListMessage.Program();
-                p.setUser(user.getId());
-                p.setId(program.getId());
-                p.setName(program.getName());
-                p.setMachine(machine.getId());
-                
-                ret.getPrograms().add(p);
+                for (Program program : machine.getPrograms().values())
+                {
+                    ProgramsListMessage.Program p = new ProgramsListMessage.Program();
+                    p.setUser(user.getId());
+                    p.setId(program.getId());
+                    p.setName(program.getName());
+                    p.setMachine(machine.getId());
+                    
+                    ret.getPrograms().add(p);
+                }
             }
         }
         e.getChannel().write(ret);

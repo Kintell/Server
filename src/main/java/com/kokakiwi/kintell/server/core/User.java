@@ -4,10 +4,12 @@ import java.io.File;
 import java.util.Map;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
 
 import com.google.common.collect.Maps;
 import com.kokakiwi.kintell.server.core.exec.Machine;
 import com.kokakiwi.kintell.server.core.exec.Machines;
+import com.kokakiwi.kintell.spec.net.msg.Message;
 
 public class User
 {
@@ -41,6 +43,23 @@ public class User
     public void setChannel(Channel channel)
     {
         this.channel = channel;
+    }
+    
+    public void sendMessage(Message msg)
+    {
+        ChannelFuture future = channel.write(msg);
+        try
+        {
+            future.await(30000L);
+            if (future.isSuccess())
+            {
+                System.out.println("Message sent!");
+            }
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
     }
     
     public String getId()

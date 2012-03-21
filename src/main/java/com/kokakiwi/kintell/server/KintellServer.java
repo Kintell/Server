@@ -2,6 +2,7 @@ package com.kokakiwi.kintell.server;
 
 import java.io.File;
 
+import com.kokakiwi.kintell.server.console.ThreadConsoleCommand;
 import com.kokakiwi.kintell.server.core.KintellServerCore;
 import com.kokakiwi.kintell.server.net.Server;
 import com.kokakiwi.kintell.server.plugins.ServerPluginsManager;
@@ -65,6 +66,8 @@ public class KintellServer
         core.init();
         System.out.println("Starting server...");
         server.start();
+        
+        new ThreadConsoleCommand(this);
     }
     
     public void stop()

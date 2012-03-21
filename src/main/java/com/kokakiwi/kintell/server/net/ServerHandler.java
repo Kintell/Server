@@ -9,6 +9,7 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 
 import com.google.common.collect.Maps;
+import com.kokakiwi.kintell.server.core.User;
 import com.kokakiwi.kintell.spec.net.MessageHandler;
 import com.kokakiwi.kintell.spec.net.msg.Message;
 
@@ -54,11 +55,16 @@ public class ServerHandler extends SimpleChannelUpstreamHandler
         ctx.setAttachment(attach);
     }
     
+    @SuppressWarnings("unchecked")
     @Override
     public void channelDisconnected(ChannelHandlerContext ctx,
             ChannelStateEvent e) throws Exception
     {
         server.getChannels().remove(e.getChannel());
+        
+        User user = (User) ((Map<String, Object>) ctx.getAttachment())
+                .get("user");
+        System.out.println("User disconnected : " + user.getId());
     }
     
     @Override

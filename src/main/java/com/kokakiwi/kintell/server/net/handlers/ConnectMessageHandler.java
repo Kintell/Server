@@ -40,6 +40,7 @@ public class ConnectMessageHandler extends MessageHandler<ConnectMessage>
         }
         
         user.setChannel(e.getChannel());
+        System.out.println("Connected: " + user.getId());
         
         attachment.put("user", user);
         
@@ -66,8 +67,11 @@ public class ConnectMessageHandler extends MessageHandler<ConnectMessage>
                 WorkspaceInitMessage.Program p = new WorkspaceInitMessage.Program();
                 p.setId(program.getId());
                 p.setName(program.getName());
-                p.setContentType(program.getExecutor().getContentType());
-                p.setSource(program.getExecutor().getSource());
+                p.setContentType(program.getExecutorFactory().getContentType());
+                
+                ProgramExecutor executor = program.getExecutorFactory()
+                        .createExecutor(program);
+                p.setSource(executor.getSource());
                 
                 m.getPrograms().add(p);
             }
@@ -75,7 +79,7 @@ public class ConnectMessageHandler extends MessageHandler<ConnectMessage>
             workspace.getMachines().add(m);
         }
         
-        user.getChannel().write(workspace);
+        user.sendMessage(workspace);
         
         return true;
     }

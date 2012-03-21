@@ -52,6 +52,7 @@ public class Server
                 new ProgramsListMessageHandler(this));
         codec.registerHandler(LaunchMessage.class, new LaunchMessageHandler(
                 this));
+        codec.registerHandler(StopMessage.class, new StopMessageHandler(this));
     }
     
     public void start()

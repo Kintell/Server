@@ -10,6 +10,7 @@ import com.kokakiwi.kintell.server.core.User;
 import com.kokakiwi.kintell.server.core.exec.Machine;
 import com.kokakiwi.kintell.server.core.exec.Program;
 import com.kokakiwi.kintell.server.core.exec.ProgramExecutor;
+import com.kokakiwi.kintell.server.core.exec.ProgramExecutorFactory;
 import com.kokakiwi.kintell.server.net.Server;
 import com.kokakiwi.kintell.spec.net.MessageHandler;
 import com.kokakiwi.kintell.spec.net.msg.CreateProgramMessage;
@@ -36,10 +37,9 @@ public class CreateProgramMessageHandler extends
         if (machine != null)
         {
             Program program = machine.createProgram(msg.getId(), msg.getName());
-            ProgramExecutor executor = core.getExecutorFactory(
-                    msg.getContentType().getId()).createExecutor(program);
-            executor.setSource("");
-            program.setExecutor(executor);
+            ProgramExecutorFactory<? extends ProgramExecutor> executorFactory = core
+                    .getExecutorFactory(msg.getContentType().getId());
+            program.setExecutor(executorFactory);
         }
         
         return true;

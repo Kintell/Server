@@ -59,16 +59,17 @@ public class Machine
         return programs.get(id);
     }
     
-    public Program createProgram(String id, ProgramExecutor executor)
+    public Program createProgram(String id,
+            ProgramExecutorFactory<? extends ProgramExecutor> executorFactory)
     {
-        return createProgram(id, id, executor);
+        return createProgram(id, id, executorFactory);
     }
     
     public Program createProgram(String id, String name,
-            ProgramExecutor executor)
+            ProgramExecutorFactory<? extends ProgramExecutor> executorFactory)
     {
         Program program = createProgram(id, name);
-        program.setExecutor(executor);
+        program.setExecutor(executorFactory);
         
         return program;
     }

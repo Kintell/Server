@@ -7,6 +7,7 @@ import org.jboss.netty.channel.MessageEvent;
 
 import com.kokakiwi.kintell.server.core.User;
 import com.kokakiwi.kintell.server.core.board.Board;
+import com.kokakiwi.kintell.server.core.board.Board.RegisteredProgram;
 import com.kokakiwi.kintell.server.core.exec.Program;
 import com.kokakiwi.kintell.server.net.Server;
 import com.kokakiwi.kintell.spec.net.MessageHandler;
@@ -27,6 +28,11 @@ public class LaunchMessageHandler extends MessageHandler<LaunchMessage>
     public boolean handle(ChannelHandlerContext ctx, MessageEvent e,
             LaunchMessage msg)
     {
+//        if (msg.getPrograms().size() > 7)
+//        {
+//            return false;
+//        }
+        
         int id = server.getMain().getCore().createBoard(msg.getBoard());
         Board board = server.getMain().getCore().getBoard(id);
         
@@ -40,7 +46,8 @@ public class LaunchMessageHandler extends MessageHandler<LaunchMessage>
             Program p = server.getMain().getCore().getUser(program.getUser())
                     .getMachine(program.getMachine())
                     .getProgram(program.getId());
-            board.registerProgram(p);
+            RegisteredProgram registeredProgram = board.registerProgram(p);
+            program.setId(registeredProgram.getId());
         }
         
         LaunchMessage ret = new LaunchMessage();
@@ -48,7 +55,7 @@ public class LaunchMessageHandler extends MessageHandler<LaunchMessage>
         ret.setBoard(msg.getBoard());
         ret.setPrograms(msg.getPrograms());
         
-        e.getChannel().write(msg);
+        e.getChannel().write(ret);
         
         server.getMain().getCore().getExecutor().execute(board);
         

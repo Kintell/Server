@@ -8,6 +8,7 @@ import org.jboss.netty.channel.MessageEvent;
 import com.kokakiwi.kintell.server.core.User;
 import com.kokakiwi.kintell.server.core.exec.Machine;
 import com.kokakiwi.kintell.server.core.exec.Program;
+import com.kokakiwi.kintell.server.core.exec.ProgramExecutor;
 import com.kokakiwi.kintell.server.net.Server;
 import com.kokakiwi.kintell.spec.net.MessageHandler;
 import com.kokakiwi.kintell.spec.net.msg.SendSourceMessage;
@@ -35,7 +36,9 @@ public class SendSourceMessageHandler extends MessageHandler<SendSourceMessage>
             Program program = machine.getProgram(msg.getProgram());
             if (program != null)
             {
-                program.getExecutor().setSource(msg.getSource());
+                ProgramExecutor executor = program.getExecutorFactory()
+                        .createExecutor(program);
+                executor.setSource(msg.getSource());
             }
         }
         

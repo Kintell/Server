@@ -3,7 +3,10 @@ package com.kokakiwi.kintell.server.core.board;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
+import com.google.common.collect.Maps;
 import com.kokakiwi.kintell.server.core.KintellServerCore;
 import com.kokakiwi.kintell.server.core.User;
 import com.kokakiwi.kintell.server.core.exec.Program;
@@ -13,34 +16,60 @@ import com.kokakiwi.kintell.spec.utils.data.Encodable;
 
 public abstract class Board implements Runnable
 {
-    public final static long          BOARD_TIMEOUT      = 60 * 30L;
+    public final static long                     BOARD_TIMEOUT      = 60 * 30 * 1000L;
     
-    protected final KintellServerCore core;
-    protected int                     id                 = 0;
+    protected final KintellServerCore            core;
+    protected int                                id                 = 0;
     
-    private final List<Program>       registeredPrograms = new LinkedList<Program>();
-    private final List<User>          viewers            = new LinkedList<User>();
+    private final Map<String, RegisteredProgram> registeredPrograms = Maps.newLinkedHashMap();
+    private final List<User>                     viewers            = new LinkedList<User>();
     
-    private long                      timeout            = 30000L;
-    private long                      started            = 0;
+    private long                                 timeout            = 30000L;
+    private long                                 started            = 0;
+    private long                                 sleep              = 10L;
     
-    private boolean                   running            = false;
-    private Iterator<Program>         iterator           = null;
-    private Program                   next;
+    private boolean                              running            = false;
+    private Iterator<RegisteredProgram>          iterator           = null;
+    private RegisteredProgram                    next;
     
     public Board(KintellServerCore core)
     {
         this.core = core;
     }
     
-    public final List<Program> getRegisteredPrograms()
+    public final Map<String, RegisteredProgram> getRegisteredPrograms()
     {
         return registeredPrograms;
     }
     
-    public final void registerProgram(Program program)
+    public final RegisteredProgram registerProgram(Program program)
     {
-        registeredPrograms.add(program);
+        RegisteredProgram registeredProgram = new RegisteredProgram(
+                generateId(program), program);
+        registeredPrograms.put(registeredProgram.getId(), registeredProgram);
+        
+        return registeredProgram;
+    }
+    
+    private final String generateId(Program program)
+    {
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append(program.getId());
+        sb.append('-');
+        
+        Random random = new Random();
+        int programId = Math.abs(random.nextInt());
+        
+        while (registeredPrograms.containsKey(sb.toString()
+                + String.valueOf(programId)))
+        {
+            programId = Math.abs(random.nextInt());
+        }
+        
+        sb.append(programId);
+        
+        return sb.toString();
     }
     
     public final boolean isRunning()
@@ -73,6 +102,16 @@ public abstract class Board implements Runnable
         this.timeout = timeout;
     }
     
+    public long getSleep()
+    {
+        return sleep;
+    }
+    
+    public void setSleep(long sleep)
+    {
+        this.sleep = sleep;
+    }
+    
     public final int getId()
     {
         return id;
@@ -85,13 +124,14 @@ public abstract class Board implements Runnable
     
     public final void configureExecutors()
     {
-        for (Program program : registeredPrograms)
+        for (RegisteredProgram program : registeredPrograms.values())
         {
             ProgramExecutor executor = program.getExecutor();
-            executor.reset();
             if (executor != null)
             {
-                configureExecutor(executor);
+                executor.reset();
+                configureProgram(program);
+                program.configureExecutors(this);
             }
         }
     }
@@ -101,6 +141,7 @@ public abstract class Board implements Runnable
         running = true;
         started = System.currentTimeMillis();
         
+        configureExecutors();
         init();
         
         while (running)
@@ -108,6 +149,14 @@ public abstract class Board implements Runnable
             iterator = null;
             tick();
             checkTimeout();
+            try
+            {
+                Thread.sleep(sleep);
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
         }
         
         stop();
@@ -127,7 +176,7 @@ public abstract class Board implements Runnable
     {
         if (iterator == null)
         {
-            iterator = registeredPrograms.iterator();
+            iterator = registeredPrograms.values().iterator();
         }
         
         boolean hasNext = iterator.hasNext();
@@ -140,7 +189,7 @@ public abstract class Board implements Runnable
         return hasNext;
     }
     
-    protected final Program next()
+    protected final RegisteredProgram next()
     {
         return next;
     }
@@ -170,8 +219,9 @@ public abstract class Board implements Runnable
             if (thread.isAlive())
             {
                 System.out.println("[TIMEOUT] Program '"
-                        + next.getOwner().getOwner().getId() + "."
-                        + next.getOwner().getId() + "." + next.getId() + "'");
+                        + next.getProgram().getOwner().getOwner().getId() + "."
+                        + next.getProgram().getOwner().getId() + "."
+                        + next.getId() + "'");
                 thread.stop();
             }
         }
@@ -187,10 +237,14 @@ public abstract class Board implements Runnable
         msg.setId(id);
         msg.setOpcode(opcode);
         data.encode(msg.getData());
+        msg.getData().copyWritedBytesToReadableBytes();
         
         for (User user : viewers)
         {
-            user.getChannel().write(msg);
+            if (user.getChannel() != null && user.getChannel().isWritable())
+            {
+                user.getChannel().write(msg);
+            }
         }
     }
     
@@ -199,7 +253,7 @@ public abstract class Board implements Runnable
         core.getBoards().remove(id);
     }
     
-    public abstract void configureExecutor(ProgramExecutor executor);
+    public abstract void configureProgram(RegisteredProgram program);
     
     public abstract void init();
     
@@ -207,10 +261,10 @@ public abstract class Board implements Runnable
     
     private final static class BoardProgramExecutor implements Runnable
     {
-        private final Program program;
-        private final boolean init;
+        private final RegisteredProgram program;
+        private final boolean           init;
         
-        public BoardProgramExecutor(Program program, boolean init)
+        public BoardProgramExecutor(RegisteredProgram program, boolean init)
         {
             this.program = program;
             this.init = init;
@@ -226,6 +280,48 @@ public abstract class Board implements Runnable
             {
                 program.getExecutor().tick();
             }
+        }
+    }
+    
+    public final static class RegisteredProgram
+    {
+        private final String          id;
+        private final Program         program;
+        private final ProgramExecutor executor;
+        private Debugger              debugger;
+        
+        private RegisteredProgram(String id, Program program)
+        {
+            this.id = id;
+            this.program = program;
+            this.executor = program.getExecutorFactory()
+                    .createExecutor(program);
+        }
+        
+        public String getId()
+        {
+            return id;
+        }
+        
+        public Program getProgram()
+        {
+            return program;
+        }
+        
+        public ProgramExecutor getExecutor()
+        {
+            return executor;
+        }
+        
+        public Debugger getDebugger()
+        {
+            return debugger;
+        }
+        
+        public void configureExecutors(Board board)
+        {
+            debugger = new Debugger(board, this);
+            executor.set("debug", debugger);
         }
     }
 }

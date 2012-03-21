@@ -124,7 +124,7 @@ public class KintellServerCore
             Board board = boardFactory.createBoard(this);
             do
             {
-                boardId = random.nextInt();
+                boardId = Math.abs(random.nextInt());
             } while (boards.containsKey(boardId));
             board.setId(boardId);
             boards.put(boardId, board);
