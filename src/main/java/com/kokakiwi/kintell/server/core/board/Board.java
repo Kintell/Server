@@ -129,9 +129,18 @@ public abstract class Board implements Runnable
             ProgramExecutor executor = program.getExecutor();
             if (executor != null)
             {
-                executor.reset();
-                configureProgram(program);
+                Result result = executor.reset();
                 program.configureExecutors(this);
+                
+                if (result.getType() == Result.Type.ERROR)
+                {
+                    program.getDebugger().log(result.getMessages());
+                    program.setActive(false);
+                }
+                else
+                {
+                    configureProgram(program);
+                }
             }
         }
     }
@@ -179,12 +188,17 @@ public abstract class Board implements Runnable
             iterator = registeredPrograms.values().iterator();
         }
         
-        boolean hasNext = iterator.hasNext();
+        boolean hasNext = false;
         
-        if (hasNext)
+        do
         {
-            next = iterator.next();
-        }
+            hasNext = iterator.hasNext();
+            
+            if (hasNext)
+            {
+                next = iterator.next();
+            }
+        } while (!next.isActive());
         
         return hasNext;
     }
@@ -218,11 +232,24 @@ public abstract class Board implements Runnable
             thread.join(timeout);
             if (thread.isAlive())
             {
-                System.out.println("[TIMEOUT] Program '"
-                        + next.getProgram().getOwner().getOwner().getId() + "."
-                        + next.getProgram().getOwner().getId() + "."
-                        + next.getId() + "'");
+                next.getDebugger().log(
+                        "[TIMEOUT] Program '"
+                                + next.getProgram().getOwner().getOwner()
+                                        .getId() + "."
+                                + next.getProgram().getOwner().getId() + "."
+                                + next.getId() + "'");
+                next.setActive(false);
                 thread.stop();
+            }
+            else
+            {
+                if (programExecutor.getResult() != null
+                        && programExecutor.getResult().getType() == Result.Type.ERROR)
+                {
+                    next.getDebugger().log(
+                            programExecutor.getResult().getMessages());
+                    next.setActive(false);
+                }
             }
         }
         catch (InterruptedException e)
@@ -243,7 +270,7 @@ public abstract class Board implements Runnable
         {
             if (user.getChannel() != null && user.getChannel().isWritable())
             {
-                user.getChannel().write(msg);
+                user.sendMessage(msg);
             }
         }
     }
@@ -263,6 +290,7 @@ public abstract class Board implements Runnable
     {
         private final RegisteredProgram program;
         private final boolean           init;
+        private Result                  result = null;
         
         public BoardProgramExecutor(RegisteredProgram program, boolean init)
         {
@@ -274,12 +302,17 @@ public abstract class Board implements Runnable
         {
             if (init)
             {
-                program.getExecutor().init();
+                result = program.getExecutor().init();
             }
             else
             {
-                program.getExecutor().tick();
+                result = program.getExecutor().tick();
             }
+        }
+        
+        public Result getResult()
+        {
+            return result;
         }
     }
     
@@ -289,6 +322,7 @@ public abstract class Board implements Runnable
         private final Program         program;
         private final ProgramExecutor executor;
         private Debugger              debugger;
+        private boolean               active = true;
         
         private RegisteredProgram(String id, Program program)
         {
@@ -316,6 +350,16 @@ public abstract class Board implements Runnable
         public Debugger getDebugger()
         {
             return debugger;
+        }
+        
+        public boolean isActive()
+        {
+            return active;
+        }
+        
+        public void setActive(boolean active)
+        {
+            this.active = active;
         }
         
         public void configureExecutors(Board board)

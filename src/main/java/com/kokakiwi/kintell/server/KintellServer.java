@@ -4,6 +4,7 @@ import java.io.File;
 
 import com.kokakiwi.kintell.server.console.ThreadConsoleCommand;
 import com.kokakiwi.kintell.server.core.KintellServerCore;
+import com.kokakiwi.kintell.server.database.Database;
 import com.kokakiwi.kintell.server.net.Server;
 import com.kokakiwi.kintell.server.plugins.ServerPluginsManager;
 import com.kokakiwi.kintell.spec.console.ConsoleOutputManager;
@@ -16,6 +17,7 @@ public class KintellServer
     private final ServerPluginsManager pluginsManager;
     private final Server               server;
     private final KintellServerCore    core;
+    private final Database             database;
     
     public KintellServer()
     {
@@ -42,6 +44,8 @@ public class KintellServer
                 .getString("plugins.path")));
         
         server = new Server(this);
+        
+        database = new Database(new File("database.db"));
         
         core = new KintellServerCore(this);
     }
@@ -99,6 +103,11 @@ public class KintellServer
     public KintellServerCore getCore()
     {
         return core;
+    }
+    
+    public Database getDatabase()
+    {
+        return database;
     }
     
     public static void main(String[] args)

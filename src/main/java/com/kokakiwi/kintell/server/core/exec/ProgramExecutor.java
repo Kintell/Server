@@ -1,5 +1,7 @@
 package com.kokakiwi.kintell.server.core.exec;
 
+import com.kokakiwi.kintell.server.core.board.Result;
+
 public abstract class ProgramExecutor
 {
     protected final Program program;
@@ -22,9 +24,9 @@ public abstract class ProgramExecutor
      */
     public abstract String getContentType();
     
-    public abstract Object init();
+    public abstract Result init();
     
-    public abstract Object tick();
+    public abstract Result tick();
     
     /**
      * Set a property that could be used by the program in the script.
@@ -39,7 +41,7 @@ public abstract class ProgramExecutor
     /**
      * Reset the executor's context (variables registered, etc...)
      */
-    public abstract void reset();
+    public abstract Result reset();
     
     public abstract String getSource();
     

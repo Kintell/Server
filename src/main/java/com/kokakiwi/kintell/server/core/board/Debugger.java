@@ -1,5 +1,8 @@
 package com.kokakiwi.kintell.server.core.board;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.kokakiwi.kintell.server.core.User;
 import com.kokakiwi.kintell.server.core.board.Board.RegisteredProgram;
 import com.kokakiwi.kintell.server.core.exec.annotations.NonAccessible;
@@ -18,20 +21,31 @@ public class Debugger
     
     public void log(String message)
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[Program '");
-        sb.append(program.getId());
-        sb.append("'] ");
-        sb.append(message);
-        
+        log(Arrays.asList(message));
+    }
+    
+    public void log(List<String> messages)
+    {
         DebugMessage msg = new DebugMessage();
-        msg.setMessage(sb.toString());
+        
+        for (String message : messages)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[Program '");
+            sb.append(program.getId());
+            sb.append("'] ");
+            sb.append(message);
+            
+            msg.getMessages().add(sb.toString());
+            
+            System.out.println(sb.toString());
+        }
         
         for (User user : board.getViewers())
         {
-            if (user.getChannel() != null && user.getChannel().isWritable())
+            if (user.equals(program.getProgram().getOwner().getOwner()))
             {
-                user.getChannel().write(msg);
+                user.sendMessage(msg);
             }
         }
     }

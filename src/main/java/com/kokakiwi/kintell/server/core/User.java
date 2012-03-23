@@ -6,9 +6,11 @@ import java.util.Map;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 
+import com.avaje.ebean.ExpressionList;
 import com.google.common.collect.Maps;
 import com.kokakiwi.kintell.server.core.exec.Machine;
 import com.kokakiwi.kintell.server.core.exec.Machines;
+import com.kokakiwi.kintell.server.database.UserEntry;
 import com.kokakiwi.kintell.spec.net.msg.Message;
 
 public class User
@@ -47,18 +49,17 @@ public class User
     
     public void sendMessage(Message msg)
     {
-        ChannelFuture future = channel.write(msg);
-        try
+        if (channel.isWritable())
         {
-            future.await(30000L);
-            if (future.isSuccess())
+            ChannelFuture future = channel.write(msg);
+            try
             {
-                System.out.println("Message sent!");
+                future.await(30000L);
             }
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
         }
     }
     
@@ -99,5 +100,54 @@ public class User
     public Machines getM()
     {
         return m;
+    }
+    
+    public UserEntry getEntry()
+    {
+        UserEntry entry = null;
+        
+        ExpressionList<UserEntry> query = m.getCore().getMain().getDatabase()
+                .getEbean().find(UserEntry.class).where().eq("name", id);
+        
+        if (query.findRowCount() > 0)
+        {
+            entry = query.findUnique();
+        }
+        
+        return entry;
+    }
+    
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((channel == null) ? 0 : channel.hashCode());
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((m == null) ? 0 : m.hashCode());
+        result = prime * result
+                + ((machines == null) ? 0 : machines.hashCode());
+        result = prime * result + ((root == null) ? 0 : root.hashCode());
+        return result;
+    }
+    
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        User other = (User) obj;
+        if (id == null)
+        {
+            if (other.id != null)
+                return false;
+        }
+        else if (!id.equals(other.id))
+            return false;
+        return true;
     }
 }

@@ -10,10 +10,12 @@ import com.kokakiwi.kintell.server.core.exec.Machine;
 import com.kokakiwi.kintell.server.core.exec.Program;
 import com.kokakiwi.kintell.server.core.exec.ProgramExecutor;
 import com.kokakiwi.kintell.server.core.exec.ProgramExecutorFactory;
+import com.kokakiwi.kintell.server.database.UserEntry;
 import com.kokakiwi.kintell.server.net.Server;
 import com.kokakiwi.kintell.spec.net.MessageHandler;
 import com.kokakiwi.kintell.spec.net.msg.ConnectMessage;
 import com.kokakiwi.kintell.spec.net.msg.WorkspaceInitMessage;
+import com.kokakiwi.kintell.spec.net.msg.WrongPasswordMessage;
 
 public class ConnectMessageHandler extends MessageHandler<ConnectMessage>
 {
@@ -37,6 +39,26 @@ public class ConnectMessageHandler extends MessageHandler<ConnectMessage>
         {
             user = server.getMain().getCore()
                     .createUser(msg.getPseudo(), e.getChannel());
+        }
+        
+        UserEntry entry = user.getEntry();
+        if (entry == null)
+        {
+            entry = new UserEntry();
+            entry.setName(msg.getPseudo());
+            entry.setPassword(msg.getPassword());
+            
+            server.getMain().getDatabase().getEbean().save(entry);
+        }
+        else
+        {
+            if (!entry.getPassword().equals(msg.getPassword()))
+            {
+                WrongPasswordMessage wrongPasswordMessage = new WrongPasswordMessage();
+                e.getChannel().write(wrongPasswordMessage);
+                
+                return false;
+            }
         }
         
         user.setChannel(e.getChannel());

@@ -62,9 +62,12 @@ public class ServerHandler extends SimpleChannelUpstreamHandler
     {
         server.getChannels().remove(e.getChannel());
         
-        User user = (User) ((Map<String, Object>) ctx.getAttachment())
-                .get("user");
-        System.out.println("User disconnected : " + user.getId());
+        if (((Map<String, Object>) ctx.getAttachment()).containsKey("user"))
+        {
+            User user = (User) ((Map<String, Object>) ctx.getAttachment())
+                    .get("user");
+            System.out.println("User disconnected : " + user.getId());
+        }
     }
     
     @Override

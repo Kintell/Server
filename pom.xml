@@ -11,6 +11,16 @@
 			<artifactId>kintel-spec</artifactId>
 			<version>1.0.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.avaje</groupId>
+			<artifactId>ebean</artifactId>
+			<version>2.7.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+			<version>3.7.2</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>kintell-server</finalName>
