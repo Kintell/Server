@@ -27,13 +27,14 @@ public class CreateMachineMessageHandler extends
     public boolean handle(ChannelHandlerContext ctx, MessageEvent e,
             CreateMachineMessage msg)
     {
-        KintellServerCore core = server.getMain().getCore();
-        Map<String, Object> attach = (Map<String, Object>) ctx.getAttachment();
-        User user = (User) attach.get("user");
+        final KintellServerCore core = server.getMain().getCore();
+        final Map<String, Object> attach = (Map<String, Object>) ctx
+                .getAttachment();
+        final User user = (User) attach.get("user");
         if (user.getMachine(msg.getId()) == null)
         {
-            Machine machine = core.getMachines().createMachine(msg.getId(),
-                    user);
+            final Machine machine = core.getMachines().createMachine(
+                    msg.getId(), user);
             user.addMachine(machine);
         }
         

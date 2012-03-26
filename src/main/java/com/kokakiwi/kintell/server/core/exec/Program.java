@@ -77,7 +77,7 @@ public class Program
         {
             save();
         }
-        catch (IOException e)
+        catch (final IOException e)
         {
             e.printStackTrace();
         }
@@ -85,7 +85,7 @@ public class Program
     
     public void save() throws IOException
     {
-        Configuration conf = new Configuration();
+        final Configuration conf = new Configuration();
         conf.set("name", name);
         conf.set("contentType", executorFactory.getContentType());
         conf.save(new File(root, "def.yml"));
@@ -93,16 +93,16 @@ public class Program
     
     public void load()
     {
-        Configuration conf = new Configuration();
+        final Configuration conf = new Configuration();
         conf.load(new File(root, "def.yml"));
         
-        String contentType = conf.getString("contentType");
+        final String contentType = conf.getString("contentType");
         for (final ProgramExecutorFactory<? extends ProgramExecutor> executorFactory : owner
                 .getParent().getCore().getExecutorFactories().values())
         {
             if (executorFactory.getContentType().equalsIgnoreCase(contentType))
             {
-                Thread thread = new Thread(new Runnable() {
+                final Thread thread = new Thread(new Runnable() {
                     public void run()
                     {
                         Program.this.executorFactory = executorFactory;
@@ -120,7 +120,7 @@ public class Program
                         getOwner().getPrograms().remove(id);
                     }
                 }
-                catch (InterruptedException e)
+                catch (final InterruptedException e)
                 {
                     e.printStackTrace();
                 }
@@ -131,9 +131,72 @@ public class Program
     }
     
     @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((owner == null) ? 0 : owner.hashCode());
+        return result;
+    }
+    
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (!(obj instanceof Program))
+        {
+            return false;
+        }
+        Program other = (Program) obj;
+        if (id == null)
+        {
+            if (other.id != null)
+            {
+                return false;
+            }
+        }
+        else if (!id.equals(other.id))
+        {
+            return false;
+        }
+        if (name == null)
+        {
+            if (other.name != null)
+            {
+                return false;
+            }
+        }
+        else if (!name.equals(other.name))
+        {
+            return false;
+        }
+        if (owner == null)
+        {
+            if (other.owner != null)
+            {
+                return false;
+            }
+        }
+        else if (!owner.equals(other.owner))
+        {
+            return false;
+        }
+        return true;
+    }
+    
+    @Override
     public String toString()
     {
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
         builder.append("Program [owner=");
         builder.append(owner);
         builder.append(", id=");

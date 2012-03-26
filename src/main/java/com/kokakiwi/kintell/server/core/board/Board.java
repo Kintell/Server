@@ -1,11 +1,11 @@
 package com.kokakiwi.kintell.server.core.board;
 
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.kokakiwi.kintell.server.core.KintellServerCore;
 import com.kokakiwi.kintell.server.core.User;
@@ -16,25 +16,29 @@ import com.kokakiwi.kintell.spec.utils.data.Encodable;
 
 public abstract class Board implements Runnable
 {
-    public final static long                     BOARD_TIMEOUT      = 60 * 30 * 1000L;
+    public final static long                      BOARD_TIMEOUT      = 60 * 30 * 1000L;
     
-    protected final KintellServerCore            core;
-    protected int                                id                 = 0;
+    protected final KintellServerCore             core;
+    protected final BoardFactory<? extends Board> boardFactory;
+    protected int                                 id                 = 0;
     
-    private final Map<String, RegisteredProgram> registeredPrograms = Maps.newLinkedHashMap();
-    private final List<User>                     viewers            = new LinkedList<User>();
+    private final Map<String, RegisteredProgram>  registeredPrograms = Maps.newLinkedHashMap();
+    private final Map<Integer, Program>           listedPrograms     = Maps.newLinkedHashMap();
+    private final List<User>                      viewers            = Lists.newLinkedList();
     
-    private long                                 timeout            = 30000L;
-    private long                                 started            = 0;
-    private long                                 sleep              = 10L;
+    private long                                  timeout            = 30000L;
+    private long                                  started            = 0;
+    private long                                  sleep              = 10L;
     
-    private boolean                              running            = false;
-    private Iterator<RegisteredProgram>          iterator           = null;
-    private RegisteredProgram                    next;
+    private boolean                               running            = false;
+    private Iterator<RegisteredProgram>           iterator           = null;
+    private RegisteredProgram                     next;
     
-    public Board(KintellServerCore core)
+    public Board(KintellServerCore core,
+            BoardFactory<? extends Board> boardFactory)
     {
         this.core = core;
+        this.boardFactory = boardFactory;
     }
     
     public final Map<String, RegisteredProgram> getRegisteredPrograms()
@@ -42,23 +46,33 @@ public abstract class Board implements Runnable
         return registeredPrograms;
     }
     
+    public Map<Integer, Program> getListedPrograms()
+    {
+        return listedPrograms;
+    }
+    
     public final RegisteredProgram registerProgram(Program program)
     {
-        RegisteredProgram registeredProgram = new RegisteredProgram(
+        final RegisteredProgram registeredProgram = new RegisteredProgram(
                 generateId(program), program);
         registeredPrograms.put(registeredProgram.getId(), registeredProgram);
+        
+        if (!listedPrograms.containsKey(program.hashCode()))
+        {
+            listedPrograms.put(program.hashCode(), program);
+        }
         
         return registeredProgram;
     }
     
     private final String generateId(Program program)
     {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         
         sb.append(program.getId());
         sb.append('-');
         
-        Random random = new Random();
+        final Random random = new Random();
         int programId = Math.abs(random.nextInt());
         
         while (registeredPrograms.containsKey(sb.toString()
@@ -85,6 +99,11 @@ public abstract class Board implements Runnable
     public final KintellServerCore getCore()
     {
         return core;
+    }
+    
+    public BoardFactory<? extends Board> getBoardFactory()
+    {
+        return boardFactory;
     }
     
     public final List<User> getViewers()
@@ -124,12 +143,12 @@ public abstract class Board implements Runnable
     
     public final void configureExecutors()
     {
-        for (RegisteredProgram program : registeredPrograms.values())
+        for (final RegisteredProgram program : registeredPrograms.values())
         {
-            ProgramExecutor executor = program.getExecutor();
+            final ProgramExecutor executor = program.getExecutor();
             if (executor != null)
             {
-                Result result = executor.reset();
+                final Result result = executor.reset();
                 program.configureExecutors(this);
                 
                 if (result.getType() == Result.Type.ERROR)
@@ -162,7 +181,7 @@ public abstract class Board implements Runnable
             {
                 Thread.sleep(sleep);
             }
-            catch (InterruptedException e)
+            catch (final InterruptedException e)
             {
                 e.printStackTrace();
             }
@@ -173,7 +192,7 @@ public abstract class Board implements Runnable
     
     private final void checkTimeout()
     {
-        long diff = System.currentTimeMillis() - started;
+        final long diff = System.currentTimeMillis() - started;
         if (diff > BOARD_TIMEOUT)
         {
             System.out.println("[TIMEOUT] Board '" + id + "'");
@@ -221,10 +240,10 @@ public abstract class Board implements Runnable
     @SuppressWarnings("deprecation")
     private final void runProgram(boolean init)
     {
-        BoardProgramExecutor programExecutor = new BoardProgramExecutor(next,
-                init);
+        final BoardProgramExecutor programExecutor = new BoardProgramExecutor(
+                next, init);
         
-        Thread thread = new Thread(programExecutor);
+        final Thread thread = new Thread(programExecutor);
         thread.start();
         
         try
@@ -252,7 +271,7 @@ public abstract class Board implements Runnable
                 }
             }
         }
-        catch (InterruptedException e)
+        catch (final InterruptedException e)
         {
             e.printStackTrace();
         }
@@ -260,13 +279,13 @@ public abstract class Board implements Runnable
     
     protected final void sendData(String opcode, Encodable data)
     {
-        BoardMessage msg = new BoardMessage();
+        final BoardMessage msg = new BoardMessage();
         msg.setId(id);
         msg.setOpcode(opcode);
         data.encode(msg.getData());
         msg.getData().copyWritedBytesToReadableBytes();
         
-        for (User user : viewers)
+        for (final User user : viewers)
         {
             if (user.getChannel() != null && user.getChannel().isWritable())
             {
@@ -278,6 +297,14 @@ public abstract class Board implements Runnable
     private final void stop()
     {
         core.getBoards().remove(id);
+    }
+    
+    protected final void win(RegisteredProgram winner)
+    {
+        running = false;
+        
+        core.getRanking().updateRanks(boardFactory.getId(),
+                listedPrograms.values(), winner.getProgram());
     }
     
     public abstract void configureProgram(RegisteredProgram program);
@@ -328,8 +355,7 @@ public abstract class Board implements Runnable
         {
             this.id = id;
             this.program = program;
-            this.executor = program.getExecutorFactory()
-                    .createExecutor(program);
+            executor = program.getExecutorFactory().createExecutor(program);
         }
         
         public String getId()

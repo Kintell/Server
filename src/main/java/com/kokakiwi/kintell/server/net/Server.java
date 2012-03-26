@@ -12,9 +12,23 @@ import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 
 import com.kokakiwi.kintell.server.KintellServer;
-import com.kokakiwi.kintell.server.net.handlers.*;
-import com.kokakiwi.kintell.spec.net.msg.*;
+import com.kokakiwi.kintell.server.net.handlers.ConnectMessageHandler;
+import com.kokakiwi.kintell.server.net.handlers.CreateMachineMessageHandler;
+import com.kokakiwi.kintell.server.net.handlers.CreateProgramMessageHandler;
+import com.kokakiwi.kintell.server.net.handlers.LaunchMessageHandler;
+import com.kokakiwi.kintell.server.net.handlers.ProgramsListMessageHandler;
+import com.kokakiwi.kintell.server.net.handlers.RankEntriesMessageHandler;
+import com.kokakiwi.kintell.server.net.handlers.SendSourceMessageHandler;
+import com.kokakiwi.kintell.server.net.handlers.StopMessageHandler;
 import com.kokakiwi.kintell.spec.net.CodecResolver;
+import com.kokakiwi.kintell.spec.net.msg.ConnectMessage;
+import com.kokakiwi.kintell.spec.net.msg.CreateMachineMessage;
+import com.kokakiwi.kintell.spec.net.msg.CreateProgramMessage;
+import com.kokakiwi.kintell.spec.net.msg.LaunchMessage;
+import com.kokakiwi.kintell.spec.net.msg.ProgramsListMessage;
+import com.kokakiwi.kintell.spec.net.msg.RankEntriesMessage;
+import com.kokakiwi.kintell.spec.net.msg.SendSourceMessage;
+import com.kokakiwi.kintell.spec.net.msg.StopMessage;
 
 public class Server
 {
@@ -53,6 +67,8 @@ public class Server
         codec.registerHandler(LaunchMessage.class, new LaunchMessageHandler(
                 this));
         codec.registerHandler(StopMessage.class, new StopMessageHandler(this));
+        codec.registerHandler(RankEntriesMessage.class,
+                new RankEntriesMessageHandler(this));
     }
     
     public void start()
@@ -64,7 +80,7 @@ public class Server
             channel = bootstrap.bind(new InetSocketAddress(main
                     .getConfiguration().getInteger("server.port")));
         }
-        catch (Exception e)
+        catch (final Exception e)
         {
             e.printStackTrace();
         }
@@ -74,7 +90,7 @@ public class Server
     {
         channels.disconnect();
         
-        ChannelFuture future = channel.close();
+        final ChannelFuture future = channel.close();
         future.awaitUninterruptibly();
         if (!future.isSuccess())
         {

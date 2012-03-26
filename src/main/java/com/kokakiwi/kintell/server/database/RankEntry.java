@@ -1,6 +1,10 @@
 package com.kokakiwi.kintell.server.database;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
 @Table(name = "ranks")
@@ -11,12 +15,24 @@ public class RankEntry
     private int    id;
     
     @Basic
+    @Column(name = "board")
+    private String board;
+    
+    @Basic
+    @Column(name = "user")
+    private String user;
+    
+    @Basic
+    @Column(name = "machine")
+    private String machine;
+    
+    @Basic
     @Column(name = "program")
     private String program;
     
     @Basic
-    @Column(name = "score")
-    private int    score;
+    @Column(name = "points")
+    private int    points;
     
     public int getId()
     {
@@ -26,6 +42,36 @@ public class RankEntry
     public void setId(int id)
     {
         this.id = id;
+    }
+    
+    public String getBoard()
+    {
+        return board;
+    }
+    
+    public void setBoard(String board)
+    {
+        this.board = board;
+    }
+    
+    public String getUser()
+    {
+        return user;
+    }
+    
+    public void setUser(String user)
+    {
+        this.user = user;
+    }
+    
+    public String getMachine()
+    {
+        return machine;
+    }
+    
+    public void setMachine(String machine)
+    {
+        this.machine = machine;
     }
     
     public String getProgram()
@@ -38,13 +84,13 @@ public class RankEntry
         this.program = program;
     }
     
-    public int getScore()
+    public int getPoints()
     {
-        return score;
+        return points;
     }
     
-    public void setScore(int score)
+    public void setPoints(int points)
     {
-        this.score = score;
+        this.points = points;
     }
 }

@@ -28,16 +28,17 @@ public class ServerHandler extends SimpleChannelUpstreamHandler
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception
     {
-        Object message = e.getMessage();
+        final Object message = e.getMessage();
         if (message instanceof Message)
         {
-            Message msg = (Message) message;
-            Class<Message> clazz = (Class<Message>) msg.getClass();
-            MessageHandler<Message> handler = server.getCodec().getHandler(
-                    clazz);
+            final Message msg = (Message) message;
+            final Class<Message> clazz = (Class<Message>) msg.getClass();
+            final MessageHandler<Message> handler = server.getCodec()
+                    .getHandler(clazz);
             if (handler != null)
             {
-                PacketExecutor executor = new PacketExecutor(handler, ctx, e);
+                final PacketExecutor executor = new PacketExecutor(handler,
+                        ctx, e);
                 server.getExecutor().execute(executor);
                 return;
             }
@@ -51,7 +52,7 @@ public class ServerHandler extends SimpleChannelUpstreamHandler
             throws Exception
     {
         server.getChannels().add(e.getChannel());
-        Map<String, Object> attach = Maps.newLinkedHashMap();
+        final Map<String, Object> attach = Maps.newLinkedHashMap();
         ctx.setAttachment(attach);
     }
     
@@ -64,7 +65,7 @@ public class ServerHandler extends SimpleChannelUpstreamHandler
         
         if (((Map<String, Object>) ctx.getAttachment()).containsKey("user"))
         {
-            User user = (User) ((Map<String, Object>) ctx.getAttachment())
+            final User user = (User) ((Map<String, Object>) ctx.getAttachment())
                     .get("user");
             System.out.println("User disconnected : " + user.getId());
         }

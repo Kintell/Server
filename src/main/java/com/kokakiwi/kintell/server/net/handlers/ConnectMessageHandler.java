@@ -31,7 +31,7 @@ public class ConnectMessageHandler extends MessageHandler<ConnectMessage>
     public boolean handle(ChannelHandlerContext ctx, MessageEvent e,
             ConnectMessage msg)
     {
-        Map<String, Object> attachment = (Map<String, Object>) ctx
+        final Map<String, Object> attachment = (Map<String, Object>) ctx
                 .getAttachment();
         User user = server.getMain().getCore()
                 .getUser(msg.getPseudo().toLowerCase());
@@ -44,20 +44,37 @@ public class ConnectMessageHandler extends MessageHandler<ConnectMessage>
         UserEntry entry = user.getEntry();
         if (entry == null)
         {
-            entry = new UserEntry();
-            entry.setName(msg.getPseudo());
-            entry.setPassword(msg.getPassword());
-            
-            server.getMain().getDatabase().getEbean().save(entry);
+            try
+            {
+                entry = new UserEntry();
+                entry.setName(msg.getPseudo());
+                entry.setPassword(User.hashPassword(msg.getPassword()));
+                server.getMain().getDatabase().getEbean().save(entry);
+            }
+            catch (Exception e1)
+            {
+                e1.printStackTrace();
+            }
         }
         else
         {
-            if (!entry.getPassword().equals(msg.getPassword()))
+            try
             {
-                WrongPasswordMessage wrongPasswordMessage = new WrongPasswordMessage();
-                e.getChannel().write(wrongPasswordMessage);
-                
-                return false;
+                if (!entry.getPassword().equals(
+                        User.hashPassword(msg.getPassword())))
+                {
+                    final WrongPasswordMessage wrongPasswordMessage = new WrongPasswordMessage();
+                    e.getChannel().write(wrongPasswordMessage);
+                    
+                    System.out
+                            .println("Somebody trying to connect with wrong password.");
+                    
+                    return false;
+                }
+            }
+            catch (Exception e1)
+            {
+                e1.printStackTrace();
             }
         }
         
@@ -66,12 +83,12 @@ public class ConnectMessageHandler extends MessageHandler<ConnectMessage>
         
         attachment.put("user", user);
         
-        WorkspaceInitMessage workspace = new WorkspaceInitMessage();
+        final WorkspaceInitMessage workspace = new WorkspaceInitMessage();
         
-        for (ProgramExecutorFactory<? extends ProgramExecutor> executorFactory : server
+        for (final ProgramExecutorFactory<? extends ProgramExecutor> executorFactory : server
                 .getMain().getCore().getExecutorFactories().values())
         {
-            WorkspaceInitMessage.ContentType contentType = new WorkspaceInitMessage.ContentType();
+            final WorkspaceInitMessage.ContentType contentType = new WorkspaceInitMessage.ContentType();
             contentType.setId(executorFactory.getId());
             contentType.setName(executorFactory.getName());
             contentType.setContentType(executorFactory.getContentType());
@@ -79,19 +96,19 @@ public class ConnectMessageHandler extends MessageHandler<ConnectMessage>
             workspace.getContentTypes().add(contentType);
         }
         
-        for (Machine machine : user.getMachines().values())
+        for (final Machine machine : user.getMachines().values())
         {
-            WorkspaceInitMessage.Machine m = new WorkspaceInitMessage.Machine();
+            final WorkspaceInitMessage.Machine m = new WorkspaceInitMessage.Machine();
             m.setId(machine.getId());
             
-            for (Program program : machine.getPrograms().values())
+            for (final Program program : machine.getPrograms().values())
             {
-                WorkspaceInitMessage.Program p = new WorkspaceInitMessage.Program();
+                final WorkspaceInitMessage.Program p = new WorkspaceInitMessage.Program();
                 p.setId(program.getId());
                 p.setName(program.getName());
                 p.setContentType(program.getExecutorFactory().getContentType());
                 
-                ProgramExecutor executor = program.getExecutorFactory()
+                final ProgramExecutor executor = program.getExecutorFactory()
                         .createExecutor(program);
                 p.setSource(executor.getSource());
                 

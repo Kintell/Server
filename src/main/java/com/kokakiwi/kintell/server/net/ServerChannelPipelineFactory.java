@@ -17,7 +17,7 @@ public class ServerChannelPipelineFactory implements ChannelPipelineFactory
     
     public ChannelPipeline getPipeline() throws Exception
     {
-        ChannelPipeline pipeline = Channels.pipeline();
+        final ChannelPipeline pipeline = Channels.pipeline();
         
         pipeline.addLast("framer", new CodecFrameDecoder());
         

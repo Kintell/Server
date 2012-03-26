@@ -1,6 +1,7 @@
 package com.kokakiwi.kintell.server.core;
 
 import java.io.File;
+import java.security.MessageDigest;
 import java.util.Map;
 
 import org.jboss.netty.channel.Channel;
@@ -51,12 +52,12 @@ public class User
     {
         if (channel.isWritable())
         {
-            ChannelFuture future = channel.write(msg);
+            final ChannelFuture future = channel.write(msg);
             try
             {
                 future.await(30000L);
             }
-            catch (InterruptedException e)
+            catch (final InterruptedException e)
             {
                 e.printStackTrace();
             }
@@ -106,8 +107,9 @@ public class User
     {
         UserEntry entry = null;
         
-        ExpressionList<UserEntry> query = m.getCore().getMain().getDatabase()
-                .getEbean().find(UserEntry.class).where().eq("name", id);
+        final ExpressionList<UserEntry> query = m.getCore().getMain()
+                .getDatabase().getEbean().find(UserEntry.class).where()
+                .eq("name", id);
         
         if (query.findRowCount() > 0)
         {
@@ -117,17 +119,36 @@ public class User
         return entry;
     }
     
+    public static String hashPassword(String password) throws Exception
+    {
+        StringBuilder sb = new StringBuilder();
+        
+        byte[] bytes = password.getBytes();
+        MessageDigest digest = MessageDigest.getInstance("SHA1");
+        
+        byte[] digested = digest.digest(bytes);
+        String hex = getHexString(digested);
+        sb.append(hex);
+        
+        return sb.toString();
+    }
+    
+    public static String getHexString(byte[] bytes)
+    {
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes)
+        {
+            sb.append(String.format("%x", b));
+        }
+        return sb.toString();
+    }
+    
     @Override
     public int hashCode()
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((channel == null) ? 0 : channel.hashCode());
         result = prime * result + ((id == null) ? 0 : id.hashCode());
-        result = prime * result + ((m == null) ? 0 : m.hashCode());
-        result = prime * result
-                + ((machines == null) ? 0 : machines.hashCode());
-        result = prime * result + ((root == null) ? 0 : root.hashCode());
         return result;
     }
     
@@ -135,19 +156,29 @@ public class User
     public boolean equals(Object obj)
     {
         if (this == obj)
+        {
             return true;
+        }
         if (obj == null)
+        {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (!(obj instanceof User))
+        {
             return false;
+        }
         User other = (User) obj;
         if (id == null)
         {
             if (other.id != null)
+            {
                 return false;
+            }
         }
         else if (!id.equals(other.id))
+        {
             return false;
+        }
         return true;
     }
 }

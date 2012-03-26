@@ -28,34 +28,36 @@ public class LaunchMessageHandler extends MessageHandler<LaunchMessage>
     public boolean handle(ChannelHandlerContext ctx, MessageEvent e,
             LaunchMessage msg)
     {
-//        if (msg.getPrograms().size() > 7)
-//        {
-//            return false;
-//        }
+        // if (msg.getPrograms().size() > 7)
+        // {
+        // return false;
+        // }
         
-        int id = server.getMain().getCore().createBoard(msg.getBoard());
-        Board board = server.getMain().getCore().getBoard(id);
+        final int id = server.getMain().getCore().createBoard(msg.getBoard());
+        final Board board = server.getMain().getCore().getBoard(id);
         
-        Map<String, Object> attachment = (Map<String, Object>) ctx
+        final Map<String, Object> attachment = (Map<String, Object>) ctx
                 .getAttachment();
-        User user = (User) attachment.get("user");
+        final User user = (User) attachment.get("user");
         board.getViewers().add(user);
         
-        for (ProgramsListMessage.Program program : msg.getPrograms())
+        for (final ProgramsListMessage.Program program : msg.getPrograms())
         {
-            Program p = server.getMain().getCore().getUser(program.getUser())
+            final Program p = server.getMain().getCore()
+                    .getUser(program.getUser())
                     .getMachine(program.getMachine())
                     .getProgram(program.getId());
-            RegisteredProgram registeredProgram = board.registerProgram(p);
+            final RegisteredProgram registeredProgram = board
+                    .registerProgram(p);
             program.setId(registeredProgram.getId());
         }
         
-        LaunchMessage ret = new LaunchMessage();
+        final LaunchMessage ret = new LaunchMessage();
         ret.setId(id);
         ret.setBoard(msg.getBoard());
         ret.setPrograms(msg.getPrograms());
         
-        e.getChannel().write(ret);
+        user.sendMessage(ret);
         
         server.getMain().getCore().getExecutor().execute(board);
         

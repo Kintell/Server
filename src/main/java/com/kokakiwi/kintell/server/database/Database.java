@@ -24,15 +24,15 @@ public class Database
     {
         this.databaseFile = databaseFile;
         
-        boolean createDb = !databaseFile.exists();
+        final boolean createDb = !databaseFile.exists();
         
-        ServerConfig config = createConfig();
-        this.ebean = EbeanServerFactory.create(config);
+        final ServerConfig config = createConfig();
+        ebean = EbeanServerFactory.create(config);
         
         if (createDb)
         {
-            SpiEbeanServer ebeanServer = (SpiEbeanServer) ebean;
-            DdlGenerator gen = ebeanServer.getDdlGenerator();
+            final SpiEbeanServer ebeanServer = (SpiEbeanServer) ebean;
+            final DdlGenerator gen = ebeanServer.getDdlGenerator();
             
             gen.runScript(false, gen.generateCreateDdl());
         }
@@ -40,7 +40,7 @@ public class Database
     
     private ServerConfig createConfig()
     {
-        ServerConfig config = new ServerConfig();
+        final ServerConfig config = new ServerConfig();
         
         config.setName("KintellDatabase");
         config.setClasses(getClasses());
@@ -49,7 +49,7 @@ public class Database
         config.setDatabasePlatform(new SQLitePlatform());
         config.getDatabasePlatform().getDbDdlSyntax().setIdentity("");
         
-        DataSourceConfig dataSourceConfig = new DataSourceConfig();
+        final DataSourceConfig dataSourceConfig = new DataSourceConfig();
         dataSourceConfig.setUrl(JDBC.PREFIX + databaseFile.getAbsolutePath());
         dataSourceConfig.setUsername("root");
         dataSourceConfig.setPassword("root");
@@ -63,7 +63,7 @@ public class Database
     
     private List<Class<?>> getClasses()
     {
-        List<Class<?>> classes = Lists.newLinkedList();
+        final List<Class<?>> classes = Lists.newLinkedList();
         
         classes.add(UserEntry.class);
         classes.add(RankEntry.class);

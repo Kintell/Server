@@ -68,7 +68,7 @@ public class Machine
     public Program createProgram(String id, String name,
             ProgramExecutorFactory<? extends ProgramExecutor> executorFactory)
     {
-        Program program = createProgram(id, name);
+        final Program program = createProgram(id, name);
         program.setExecutor(executorFactory);
         
         return program;
@@ -96,5 +96,56 @@ public class Machine
     public void setOwner(User owner)
     {
         this.owner = owner;
+    }
+    
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((owner == null) ? 0 : owner.hashCode());
+        return result;
+    }
+    
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        if (obj == null)
+        {
+            return false;
+        }
+        if (!(obj instanceof Machine))
+        {
+            return false;
+        }
+        Machine other = (Machine) obj;
+        if (id == null)
+        {
+            if (other.id != null)
+            {
+                return false;
+            }
+        }
+        else if (!id.equals(other.id))
+        {
+            return false;
+        }
+        if (owner == null)
+        {
+            if (other.owner != null)
+            {
+                return false;
+            }
+        }
+        else if (!owner.equals(other.owner))
+        {
+            return false;
+        }
+        return true;
     }
 }

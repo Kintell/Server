@@ -24,15 +24,15 @@ public class ProgramsListMessageHandler extends
     public boolean handle(ChannelHandlerContext ctx, MessageEvent e,
             ProgramsListMessage msg)
     {
-        ProgramsListMessage ret = new ProgramsListMessage();
+        final ProgramsListMessage ret = new ProgramsListMessage();
         
-        for (User user : server.getMain().getCore().getUsers().values())
+        for (final User user : server.getMain().getCore().getUsers().values())
         {
-            for (Machine machine : user.getMachines().values())
+            for (final Machine machine : user.getMachines().values())
             {
-                for (Program program : machine.getPrograms().values())
+                for (final Program program : machine.getPrograms().values())
                 {
-                    ProgramsListMessage.Program p = new ProgramsListMessage.Program();
+                    final ProgramsListMessage.Program p = new ProgramsListMessage.Program();
                     p.setUser(user.getId());
                     p.setId(program.getId());
                     p.setName(program.getName());

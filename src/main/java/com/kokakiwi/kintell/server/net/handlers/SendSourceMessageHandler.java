@@ -16,7 +16,7 @@ import com.kokakiwi.kintell.spec.net.msg.SendSourceMessage;
 public class SendSourceMessageHandler extends MessageHandler<SendSourceMessage>
 {
     @SuppressWarnings("unused")
-    private Server server;
+    private final Server server;
     
     public SendSourceMessageHandler(Server server)
     {
@@ -28,15 +28,16 @@ public class SendSourceMessageHandler extends MessageHandler<SendSourceMessage>
     public boolean handle(ChannelHandlerContext ctx, MessageEvent e,
             SendSourceMessage msg)
     {
-        Map<String, Object> attach = (Map<String, Object>) ctx.getAttachment();
-        User user = (User) attach.get("user");
-        Machine machine = user.getMachine(msg.getMachine());
+        final Map<String, Object> attach = (Map<String, Object>) ctx
+                .getAttachment();
+        final User user = (User) attach.get("user");
+        final Machine machine = user.getMachine(msg.getMachine());
         if (machine != null)
         {
-            Program program = machine.getProgram(msg.getProgram());
+            final Program program = machine.getProgram(msg.getProgram());
             if (program != null)
             {
-                ProgramExecutor executor = program.getExecutorFactory()
+                final ProgramExecutor executor = program.getExecutorFactory()
                         .createExecutor(program);
                 executor.setSource(msg.getSource());
             }

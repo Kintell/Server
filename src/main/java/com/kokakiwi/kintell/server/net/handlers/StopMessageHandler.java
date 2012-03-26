@@ -25,12 +25,12 @@ public class StopMessageHandler extends MessageHandler<StopMessage>
     public boolean handle(ChannelHandlerContext ctx, MessageEvent e,
             StopMessage msg)
     {
-        Board board = server.getMain().getCore().getBoard(msg.getId());
+        final Board board = server.getMain().getCore().getBoard(msg.getId());
         if (board != null)
         {
-            Map<String, Object> attach = (Map<String, Object>) ctx
+            final Map<String, Object> attach = (Map<String, Object>) ctx
                     .getAttachment();
-            User user = (User) attach.get("user");
+            final User user = (User) attach.get("user");
             
             board.getViewers().remove(user);
         }

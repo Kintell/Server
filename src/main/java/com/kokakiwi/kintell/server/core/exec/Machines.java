@@ -22,30 +22,32 @@ public class Machines
     
     public void init()
     {
-        File[] usersFolders = root.listFiles(new FileFilter() {
+        final File[] usersFolders = root.listFiles(new FileFilter() {
             
             public boolean accept(File pathname)
             {
                 return pathname.isDirectory();
             }
         });
-        for (File userFolder : usersFolders)
+        for (final File userFolder : usersFolders)
         {
-            User user = core.createUser(userFolder.getName(), null);
+            final User user = core.createUser(userFolder.getName(), null);
             
-            File[] machinesFolders = userFolder.listFiles(new FileFilter() {
-                
-                public boolean accept(File pathname)
-                {
-                    return pathname.isDirectory();
-                }
-            });
-            for (File machineFolder : machinesFolders)
+            final File[] machinesFolders = userFolder
+                    .listFiles(new FileFilter() {
+                        
+                        public boolean accept(File pathname)
+                        {
+                            return pathname.isDirectory();
+                        }
+                    });
+            for (final File machineFolder : machinesFolders)
             {
-                Machine machine = createMachine(machineFolder.getName(), user);
+                final Machine machine = createMachine(machineFolder.getName(),
+                        user);
                 user.addMachine(machine);
                 
-                File[] programsFolders = machineFolder
+                final File[] programsFolders = machineFolder
                         .listFiles(new FileFilter() {
                             
                             public boolean accept(File pathname)
@@ -53,9 +55,9 @@ public class Machines
                                 return pathname.isDirectory();
                             }
                         });
-                for (File programFolder : programsFolders)
+                for (final File programFolder : programsFolders)
                 {
-                    Program program = machine.createProgram(
+                    final Program program = machine.createProgram(
                             programFolder.getName(), "");
                     program.load();
                 }
@@ -84,7 +86,7 @@ public class Machines
     
     public Machine createMachine(String id, User owner)
     {
-        Machine machine = new Machine(this, id, owner);
+        final Machine machine = new Machine(this, id, owner);
         
         return machine;
     }
@@ -93,7 +95,7 @@ public class Machines
     {
         Program program = null;
         
-        Machine machine = user.getMachine(machineId);
+        final Machine machine = user.getMachine(machineId);
         if (machine != null)
         {
             program = machine.getProgram(id);

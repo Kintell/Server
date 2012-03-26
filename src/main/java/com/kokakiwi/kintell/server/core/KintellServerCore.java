@@ -14,12 +14,14 @@ import com.kokakiwi.kintell.server.core.board.BoardFactory;
 import com.kokakiwi.kintell.server.core.exec.Machines;
 import com.kokakiwi.kintell.server.core.exec.ProgramExecutor;
 import com.kokakiwi.kintell.server.core.exec.ProgramExecutorFactory;
+import com.kokakiwi.kintell.server.core.rank.Ranking;
 
 public class KintellServerCore
 {
     private final KintellServer                                                  main;
     
     private final Machines                                                       machines;
+    private final Ranking                                                        ranking;
     
     private final Map<String, ProgramExecutorFactory<? extends ProgramExecutor>> executorFactories = Maps.newLinkedHashMap();
     private final Map<String, BoardFactory<? extends Board>>                     boardFactories    = Maps.newLinkedHashMap();
@@ -36,6 +38,7 @@ public class KintellServerCore
         this.main = main;
         
         machines = new Machines(this);
+        ranking = new Ranking(this);
     }
     
     public void init()
@@ -51,6 +54,11 @@ public class KintellServerCore
     public Machines getMachines()
     {
         return machines;
+    }
+    
+    public Ranking getRanking()
+    {
+        return ranking;
     }
     
     public Map<String, ProgramExecutorFactory<? extends ProgramExecutor>> getExecutorFactories()
@@ -101,7 +109,7 @@ public class KintellServerCore
     
     public User createUser(String id, Channel channel)
     {
-        User user = new User(machines, id, channel);
+        final User user = new User(machines, id, channel);
         
         users.put(id, user);
         
@@ -117,11 +125,11 @@ public class KintellServerCore
     {
         int boardId = -1;
         
-        BoardFactory<? extends Board> boardFactory = getBoardFactory(id);
+        final BoardFactory<? extends Board> boardFactory = getBoardFactory(id);
         
         if (boardFactory != null)
         {
-            Board board = boardFactory.createBoard(this);
+            final Board board = boardFactory.createBoard(this);
             do
             {
                 boardId = Math.abs(random.nextInt());

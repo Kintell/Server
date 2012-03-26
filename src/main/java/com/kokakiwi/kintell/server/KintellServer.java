@@ -31,7 +31,7 @@ public class KintellServer
                     KintellServer.class.getResourceAsStream("/config.yml"),
                     "yaml");
         }
-        catch (Exception e)
+        catch (final Exception e)
         {
             e.printStackTrace();
         }
@@ -61,7 +61,7 @@ public class KintellServer
             System.out.println("Enabling plugins...");
             pluginsManager.enablePlugins();
         }
-        catch (Exception e)
+        catch (final Exception e)
         {
             e.printStackTrace();
         }
@@ -112,7 +112,7 @@ public class KintellServer
     
     public static void main(String[] args)
     {
-        KintellServer main = new KintellServer();
+        final KintellServer main = new KintellServer();
         main.start();
     }
 }

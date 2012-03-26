@@ -30,14 +30,16 @@ public class CreateProgramMessageHandler extends
     public boolean handle(ChannelHandlerContext ctx, MessageEvent e,
             CreateProgramMessage msg)
     {
-        KintellServerCore core = server.getMain().getCore();
-        Map<String, Object> attach = (Map<String, Object>) ctx.getAttachment();
-        User user = (User) attach.get("user");
-        Machine machine = user.getMachine(msg.getMachine());
+        final KintellServerCore core = server.getMain().getCore();
+        final Map<String, Object> attach = (Map<String, Object>) ctx
+                .getAttachment();
+        final User user = (User) attach.get("user");
+        final Machine machine = user.getMachine(msg.getMachine());
         if (machine != null)
         {
-            Program program = machine.createProgram(msg.getId(), msg.getName());
-            ProgramExecutorFactory<? extends ProgramExecutor> executorFactory = core
+            final Program program = machine.createProgram(msg.getId(),
+                    msg.getName());
+            final ProgramExecutorFactory<? extends ProgramExecutor> executorFactory = core
                     .getExecutorFactory(msg.getContentType().getId());
             program.setExecutor(executorFactory);
         }

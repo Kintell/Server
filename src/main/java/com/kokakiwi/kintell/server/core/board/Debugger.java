@@ -26,11 +26,11 @@ public class Debugger
     
     public void log(List<String> messages)
     {
-        DebugMessage msg = new DebugMessage();
+        final DebugMessage msg = new DebugMessage();
         
-        for (String message : messages)
+        for (final String message : messages)
         {
-            StringBuilder sb = new StringBuilder();
+            final StringBuilder sb = new StringBuilder();
             sb.append("[Program '");
             sb.append(program.getId());
             sb.append("'] ");
@@ -41,7 +41,7 @@ public class Debugger
             System.out.println(sb.toString());
         }
         
-        for (User user : board.getViewers())
+        for (final User user : board.getViewers())
         {
             if (user.equals(program.getProgram().getOwner().getOwner()))
             {
